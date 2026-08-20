@@ -219,7 +219,7 @@ jobs:
           - 💝 源码分支: ${{ env.REPO_BRANCH }}
           - 🌐 Default IP: 10.8.8.8
           - 🔑 Default username: root
-          - 🔑 Default password: lizhiyang0928
+          - 🔑 Default password: password
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2.0.6

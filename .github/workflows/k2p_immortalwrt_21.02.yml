@@ -30,7 +30,6 @@ jobs:
       run: |
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
-        # 使用国内镜像加速 feeds 下载
         sed -i 's_https://github.com/openwrt/packages_https://github.com.cnpmjs.org/openwrt/packages_g' feeds.conf.default || true
         sed -i 's_https://github.com/openwrt/luci_https://github.com.cnpmjs.org/openwrt/luci_g' feeds.conf.default || true
         sed -i 's_https://github.com/openwrt/routing_https://github.com.cnpmjs.org/openwrt/routing_g' feeds.conf.default || true
@@ -52,10 +51,25 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
 
+    - name: Debug - show config errors
+      run: |
+        cd openwrt
+        echo "=== Running make defconfig with verbose output ==="
+        make defconfig V=s 2>&1 | tee defconfig.log
+        echo "=== defconfig.log content ==="
+        cat defconfig.log
+        if grep -q "warning" defconfig.log; then
+          echo "=== Warnings found ==="
+          grep "warning" defconfig.log
+        fi
+        if grep -q "error" defconfig.log; then
+          echo "=== Errors found ==="
+          grep "error" defconfig.log
+        fi
+
     - name: Build firmware
       run: |
         cd openwrt
-        make defconfig
         make download -j8
         make -j$(nproc) V=s || make -j1 V=s
 

@@ -9,77 +9,58 @@ env:
   CONFIG_FILE: k2p_21.02.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+
     steps:
     - name: Checkout
       uses: actions/checkout@main
 
-    - name: Initialization environment
+    - name: Setup environment
       run: |
         sudo apt update
         sudo apt install -y build-essential libncurses5-dev libssl-dev zlib1g-dev gawk git ccache gettext \
-        libelf-dev xsltproc python3 python3-pip python3-setuptools python3-pyelftools wget file unzip qemu-utils \
-        cmake libz-dev rsync libc6-dev-i386 g++-multilib
-        sudo timedatectl set-timezone "$TZ"
-        mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
+          libelf-dev xsltproc python3 python3-pip python3-setuptools python3-pyelftools wget file unzip \
+          qemu-utils cmake libz-dev rsync libc6-dev-i386 g++-multilib
+        sudo timedatectl set-timezone Asia/Shanghai
 
-    - name: Clone source code
-      working-directory: /workdir
+    - name: Clone source
       run: |
         git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-
-    - name: Load custom feeds
-      run: |
-        chmod +x $DIY_P1_SH
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
+        # 使用国内镜像加速 feeds 下载
+        sed -i 's_https://github.com/openwrt/packages_https://github.com.cnpmjs.org/openwrt/packages_g' feeds.conf.default || true
+        sed -i 's_https://github.com/openwrt/luci_https://github.com.cnpmjs.org/openwrt/luci_g' feeds.conf.default || true
+        sed -i 's_https://github.com/openwrt/routing_https://github.com.cnpmjs.org/openwrt/routing_g' feeds.conf.default || true
 
-    - name: Update & Install feeds
+    - name: Update feeds
       run: |
         cd openwrt
         ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: |
+        cd openwrt
         ./scripts/feeds install -a
 
-    - name: Load custom configuration
+    - name: Apply custom config
       run: |
-        [ -e $CONFIG_FILE ] && cp $CONFIG_FILE openwrt/.config
+        cp $CONFIG_FILE openwrt/.config
         chmod +x $DIY_P2_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
 
     - name: Build firmware
-      id: build
       run: |
         cd openwrt
         make defconfig
-        make download -j8 V=s
+        make download -j8
         make -j$(nproc) V=s || make -j1 V=s
-        echo "status=success" >> $GITHUB_OUTPUT
 
-    - name: Organize files
-      if: steps.build.outputs.status == 'success'
-      run: |
-        cd openwrt/bin/targets/*/*
-        rm -rf packages
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-
-    - name: Upload firmware to release
-      uses: softprops/action-gh-release@v2.0.4
-      if: steps.build.outputs.status == 'success'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload firmware
+      uses: actions/upload-artifact@main
       with:
-        tag_name: k2p_21.02
-        files: ${{ env.FIRMWARE }}/*
-        body: |
-          K2P ImmortalWrt 21.02
-          Default IP: 10.8.8.8
-          Username: root
-          Password: lizhiyang0928
+        name: K2P-firmware
+        path: openwrt/bin/targets/*/*/

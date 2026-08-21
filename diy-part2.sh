@@ -14,7 +14,7 @@
 sed -i 's/192.168.1.1/10.8.8.8/g' package/base-files/files/bin/config_generate
 
 # Modify default password (lizhiyang0928)
-sed -i 's/root::0:0:99999:7:::/root:$1$i5O.cpUi$oMJ0yg3MAKDXxstgShYfF/::0:0:99999:7:::/g' package/base-files/files/etc/shadow
+sed -i 's/root::0:0:99999:7:::/root:$1$i5O.cpUi$oMJ0yg3MAKDXxstgShYfF::0:0:99999:7:::/g' package/base-files/files/etc/shadow
 
 # Modify default Hostname
 sed -i 's/ImmortalWrt/k2p/g' package/base-files/files/bin/config_generate

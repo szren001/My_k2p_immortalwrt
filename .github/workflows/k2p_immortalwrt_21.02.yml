@@ -87,6 +87,7 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
+        git config --global url."https://ghproxy.com/https://github.com/".insteadOf "https://github.com/"
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/feeds /mnt/openwrt/staging_dir
@@ -140,7 +141,7 @@ jobs:
       run: |
         cd openwrt
         make defconfig
-        make download -j8
+        make download -j8 || make download -j1 || make download -j1
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
     - name: Compile the firmware
@@ -219,7 +220,7 @@ jobs:
           - 💝 源码分支: ${{ env.REPO_BRANCH }}
           - 🌐 Default IP: 10.8.8.8
           - 🔑 Default username: root
-          - 🔑 Default password: password
+          - 🔑 Default password: lizhiyang0928
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2.0.6

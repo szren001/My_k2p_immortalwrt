@@ -13,14 +13,14 @@
 # Modify default IP
 sed -i 's/192.168.1.1/10.8.8.8/g' package/base-files/files/bin/config_generate
 
-# Modify default password (lizhiyang0928)
-sed -i 's/root::0:0:99999:7:::/root:$1$i5O.cpUi$oMJ0yg3MAKDXxstgShYfF::0:0:99999:7:::/g' package/base-files/files/etc/shadow
+# Modify default password (empty)
+sed -i 's/root::0:0:99999:7:::/root::0:0:99999:7:::/g' package/base-files/files/etc/shadow
 
 # Modify default Hostname
 sed -i 's/ImmortalWrt/k2p/g' package/base-files/files/bin/config_generate
 
-# 最大连接数修改为65535
-sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=65535' package/base-files/files/etc/sysctl.conf
+# 设置最大连接数为硬件支持的合理值（MT7621 硬件 FoE 表为 16384，此处设为 32768）
+sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=32768' package/base-files/files/etc/sysctl.conf
 
 # 修改默认主题为 bootstrap
 sed -i 's/luci-theme-argon/luci-theme-bootstrap/g' feeds/luci/collections/luci/Makefile

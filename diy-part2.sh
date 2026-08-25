@@ -28,24 +28,43 @@ sed -i 's/luci-theme-argon/luci-theme-bootstrap/g' feeds/luci/collections/luci-n
 sed -i 's/luci-theme-argon/luci-theme-bootstrap/g' feeds/luci/collections/luci-ssl-nginx/Makefile
 sed -i "s/luci-static\/argon/luci-static\/bootstrap/g" feeds/luci/modules/luci-base/root/etc/config/luci
 
-# ========== 设置默认 WiFi ==========
-mkdir -p package/base-files/files/etc/uci-defaults
-cat > package/base-files/files/etc/uci-defaults/99-custom-wifi << 'EOF'
-#!/bin/sh
-uci set wireless.radio0.disabled='0'
-uci set wireless.default_radio0.ssid='LZY8'
-uci set wireless.default_radio0.encryption='psk2'
-uci set wireless.default_radio0.key='lizhiyang0928'
+# ========== 写入正确的 WiFi 配置 ==========
+mkdir -p package/base-files/files/etc/config
+cat > package/base-files/files/etc/config/wireless << 'EOF'
+config wifi-device 'radio0'
+        option type 'mac80211'
+        option path '1e140000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0'
+        option channel '1'
+        option band '2g'
+        option htmode 'HT40'
+        option country 'CN'
+        option disabled '0'
 
-uci set wireless.radio1.disabled='0'
-uci set wireless.default_radio1.ssid='LZY'
-uci set wireless.default_radio1.encryption='psk2'
-uci set wireless.default_radio1.key='lizhiyang0928'
+config wifi-iface 'default_radio0'
+        option device 'radio0'
+        option network 'lan'
+        option mode 'ap'
+        option ssid 'LZY8'
+        option encryption 'psk2'
+        option key 'lizhiyang0928'
 
-uci commit wireless
-exit 0
+config wifi-device 'radio1'
+        option type 'mac80211'
+        option path '1e140000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0+1'
+        option channel '36'
+        option band '5g'
+        option htmode 'VHT80'
+        option country 'CN'
+        option disabled '0'
+
+config wifi-iface 'default_radio1'
+        option device 'radio1'
+        option network 'lan'
+        option mode 'ap'
+        option ssid 'LZY'
+        option encryption 'psk2'
+        option key 'lizhiyang0928'
 EOF
-chmod +x package/base-files/files/etc/uci-defaults/99-custom-wifi
 
 # ========== 强制开启内核 Flow Offload 支持（硬件加速） ==========
 echo "CONFIG_NF_FLOW_TABLE=y" >> target/linux/ramips/mt7621/config-5.4

@@ -30,7 +30,6 @@ jobs:
       run: |
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
-        # 去掉不可用的 cnpmjs 镜像，改用官方源
         sed -i 's_https://github.com.cnpmjs.org/openwrt/packages_https://github.com/openwrt/packages_g' feeds.conf.default || true
         sed -i 's_https://github.com.cnpmjs.org/openwrt/luci_https://github.com/openwrt/luci_g' feeds.conf.default || true
         sed -i 's_https://github.com.cnpmjs.org/openwrt/routing_https://github.com/openwrt/routing_g' feeds.conf.default || true

@@ -19,7 +19,7 @@ sed -i 's/root::0:0:99999:7:::/root::0:0:99999:7:::/g' package/base-files/files/
 # Modify default Hostname
 sed -i 's/ImmortalWrt/k2p/g' package/base-files/files/bin/config_generate
 
-# 设置最大连接数为硬件支持的合理值（MT7621 硬件 FoE 表为 16384，此处设为 32768）
+# 设置最大连接数为硬件支持的合理值
 sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=32768' package/base-files/files/etc/sysctl.conf
 
 # 修改默认主题为 bootstrap
@@ -28,11 +28,26 @@ sed -i 's/luci-theme-argon/luci-theme-bootstrap/g' feeds/luci/collections/luci-n
 sed -i 's/luci-theme-argon/luci-theme-bootstrap/g' feeds/luci/collections/luci-ssl-nginx/Makefile
 sed -i "s/luci-static\/argon/luci-static\/bootstrap/g" feeds/luci/modules/luci-base/root/etc/config/luci
 
-# 修改默认WiFi名称和密码 (2.4G: LZY8, 5G: LZY, 密码: lizhiyang0928)
-sed -i 's/ssid=OpenWrt/ssid=LZY8/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
-sed -i 's/ssid=OpenWrt-5G/ssid=LZY/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
-sed -i 's/encryption=none/encryption=psk2/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
-sed -i 's/key=12345678/key=lizhiyang0928/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
+# ========== 设置默认 WiFi（通过 uci-defaults 脚本） ==========
+mkdir -p package/base-files/files/etc/uci-defaults
+cat > package/base-files/files/etc/uci-defaults/99-custom-wifi << 'EOF'
+#!/bin/sh
+# 设置 2.4G WiFi
+uci set wireless.radio0.disabled='0'
+uci set wireless.default_radio0.ssid='LZY8'
+uci set wireless.default_radio0.encryption='psk2'
+uci set wireless.default_radio0.key='lizhiyang0928'
+
+# 设置 5G WiFi
+uci set wireless.radio1.disabled='0'
+uci set wireless.default_radio1.ssid='LZY'
+uci set wireless.default_radio1.encryption='psk2'
+uci set wireless.default_radio1.key='lizhiyang0928'
+
+uci commit wireless
+exit 0
+EOF
+chmod +x package/base-files/files/etc/uci-defaults/99-custom-wifi
 
 # ========== 强制开启内核 Flow Offload 支持 ==========
 echo "CONFIG_NF_FLOW_TABLE=y" >> target/linux/ramips/mt7621/config-5.4

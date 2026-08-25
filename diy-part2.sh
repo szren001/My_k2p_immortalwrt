@@ -66,5 +66,5 @@ config wifi-iface 'default_radio1'
         option key 'lizhiyang0928'
 EOF
 
-# ========== 强制开启内核 Flow Offload 支持（硬件加速） ==========
-echo "CONFIG_NF_FLOW_TABLE=y" >> target/linux/ramips/mt7621/config-5.4
+# ========== 强制开启内核 Flow Offload 支持（已确认无用，注释掉避免冲突） ==========
+# echo "CONFIG_NF_FLOW_TABLE=y" >> target/linux/ramips/mt7621/config-5.4
